@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { useCounter } from "./store/counter";
-import { useEffect } from "react";
+import { showTime, getWFOfMonth, getWFOfWeek } from "./store/counter";
+// import { useEffect } from "react";
+// const  = useCounter();
 
+const now = Date.now();
 function App() {
   const [count, setCount] = useState(() => {
     let t = +localStorage.getItem("wfo-time");
@@ -17,19 +19,19 @@ function App() {
     if (!t || new Date(t).getFullYear())
       return +localStorage.getItem("wfo") || 0;
   });
-  const { showTime, dayOfWeek, dayOfMonth } = useCounter();
+  // const { showTime, dayOfWeek, dayOfMonth } = useCounter();
   const add = () => setCount((c) => c + 1);
 
-  useEffect(() => {
-    typeof count === "number" && localStorage.setItem("wfo", count);
-    localStorage.setItem("wfo-time", Date.now());
-  }, [count]);
+  // useEffect(() => {
+  //   typeof count === "number" && localStorage.setItem("wfo", count);
+  //   localStorage.setItem("wfo-time", Date.now());
+  // }, [count]);
 
   return (
     <>
-      <h1>{dayOfWeek} days WFO this week</h1>
-      <h2>{dayOfMonth} days WFO this Month</h2>
-      <h3>{showTime}</h3>
+      <h1>{getWFOfWeek(now)} days WFO this week</h1>
+      <h2>{getWFOfMonth(now)} days WFO this Month</h2>
+      <h3>{showTime()}</h3>
       <div>
         <a href="#" onClick={add}>
           <img src={viteLogo} className="logo" alt="Vite logo" />

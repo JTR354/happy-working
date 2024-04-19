@@ -1,6 +1,3 @@
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
-
 export const getDaysOfMonth = (time = "") => {
   const date = new Date(time);
   const dayOfMonth = new Date(
@@ -16,14 +13,19 @@ export const getWorkingDaysOfMonth = (time = "") => {
   return days.filter((v) => v > 0 && v < 6).length;
 };
 
+console.log(new Date("2024-04-01").getDay(), 9e9);
+const getTime = (t = Date.now()) => {
+  const time = new Date(t);
+  return [time.getFullYear(), String(time.getMonth() + 1).padStart(2, "0")];
+};
 export const getMonthMap = (time = "") => {
   const days = getDaysOfMonth(time);
-  const tt = new Date();
+  const [year, month] = getTime();
   const result = [];
   let j = 0;
   for (let i = 1; i <= days; i++) {
     const today = new Date(
-      `${tt.getFullYear()}-${tt.getMonth() + 1}-${i}`
+      `${year}-${month}-${String(i).padStart(2, "0")}`
     ).getDay();
     if (today === 0) {
       j++;
@@ -43,30 +45,19 @@ export const getWFOfMonth = (time = "") => {
 
 export const getWFOfWeek = (time = "") => {
   // 获取当前日期
-  const date = new Date(time);
-
-  // 获取当前年份
-  const year = date.getFullYear();
-
-  // 获取当前月份
-  const month = date.getMonth() + 1;
-
-  // 获取当前日期是星期几，0 表示星期日，1 表示星期一，以此类推
-  const dayOfWeek = date.getDay();
-
-  // 获取当月的第一天是星期几
-  const firstDayOfMonth = new Date(year, month - 1);
-  const firstDayOfWeekOfMonth = firstDayOfMonth.getDay();
-
-  // 获取当前日期是当月的第几天
-  const dayOfMonth = date.getDate();
-
-  // 计算当前日期是当月的第几周
-  const weekOfMonth = Math.ceil(
-    (dayOfMonth + firstDayOfWeekOfMonth - dayOfWeek) / 7
-  );
+  const date = new Date(time)?.getDate();
   const map = getMonthMap(time);
-  const ddd = map[weekOfMonth - 1].filter((v) => v > 0 && v < 6).length * 0.4;
+  let k = 1,
+    i = 0;
+  outer: for (; i < map.length; i++) {
+    for (let j = 0; j < map[i].length; j++) {
+      k++;
+      if (k >= date) {
+        break outer;
+      }
+    }
+  }
+  const ddd = map[i].filter((v) => v > 0 && v < 6).length * 0.4;
   return Math.ceil(ddd);
 };
 
@@ -75,17 +66,3 @@ export const showTime = () => {
   const config = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   return `${time.toLocaleDateString()} ${config[time.getDay()]}.`;
 };
-
-export const useCounter = create(
-  immer((set) => ({
-    days: 0,
-    showTime: showTime(),
-    dayOfWeek: getWFOfWeek(new Date()),
-    dayOfMonth: getWFOfMonth(new Date()),
-    getCurrentWorkingDays() {
-      set((state) => {
-        state.days = 1;
-      });
-    },
-  }))
-);
