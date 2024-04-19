@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      immer:
+        specifier: ^10.0.4
+        version: 10.0.4
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -16,7 +19,7 @@ importers:
         version: 18.2.0(react@18.2.0)
       zustand:
         specifier: ^4.5.2
-        version: 4.5.2(@types/react@18.2.79)(react@18.2.0)
+        version: 4.5.2(@types/react@18.2.79)(immer@10.0.4)(react@18.2.0)
     devDependencies:
       '@testing-library/react':
         specifier: ^15.0.2
@@ -898,6 +901,9 @@ packages:
   ignore@5.3.1:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
     engines: {node: '>= 4'}
+
+  immer@10.0.4:
+    resolution: {integrity: sha512-cuBuGK40P/sk5IzWa9QPUaAdvPHjkk1c+xYsd9oZw+YQQEV+10G0P5uMpGctZZKnyQ+ibRO08bD25nWLmYi2pw==}
 
   import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
@@ -2452,6 +2458,8 @@ snapshots:
 
   ignore@5.3.1: {}
 
+  immer@10.0.4: {}
+
   import-fresh@3.3.0:
     dependencies:
       parent-module: 1.0.1
@@ -3150,9 +3158,10 @@ snapshots:
 
   yocto-queue@1.0.0: {}
 
-  zustand@4.5.2(@types/react@18.2.79)(react@18.2.0):
+  zustand@4.5.2(@types/react@18.2.79)(immer@10.0.4)(react@18.2.0):
     dependencies:
       use-sync-external-store: 1.2.0(react@18.2.0)
     optionalDependencies:
       '@types/react': 18.2.79
+      immer: 10.0.4
       react: 18.2.0
