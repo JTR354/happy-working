@@ -93,7 +93,7 @@ export const getWorkingDaysEachWeek = (
   month,
   { holiday } = {}
 ) => {
-  const workingDays = getWorkingDaysInMonth(daysList, year, month, { holiday });
+  const workingDays = getWorkingDaysInMonth(daysList, year, month);
   const result = [];
   let j = 0;
   for (let i = 0; i < workingDays.length; i++) {
@@ -104,6 +104,9 @@ export const getWorkingDaysEachWeek = (
       j++;
     }
     result[j] = result[j] || [];
+    if (holiday?.length && holiday.find((d) => +d === +workingDays[i])) {
+      continue;
+    }
     result[j].push(workingDays[i]);
   }
   return result;
