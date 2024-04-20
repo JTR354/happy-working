@@ -13,7 +13,7 @@ export const getWorkingDaysOfMonth = (time = "") => {
   return days.filter((v) => v > 0 && v < 6).length;
 };
 
-console.log(new Date("2024-04-01").getDay(), 9e9);
+// console.log(new Date("2024-04-01").getDay(), 9e9);
 const getTime = (t = Date.now()) => {
   const time = new Date(t);
   return [time.getFullYear(), String(time.getMonth() + 1).padStart(2, "0")];
