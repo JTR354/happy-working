@@ -25,6 +25,7 @@
 .cell {
   margin-top: -1px;
   margin-left: -1px;
+  &.today,
   &.normal:hover {
     background-color: #e9f0f5;
   }
@@ -33,7 +34,6 @@
   }
   &.active {
     background-color: #45539d;
-    border-color: #45539d;
     color: #ffffff;
     z-index: 2;
   }
@@ -41,4 +41,8 @@
     background-color: #f2f3f7;
     color: #a8a8a8;
   }
+}
+
+.bg-wfo {
+  background-color: #45539d;
 }
