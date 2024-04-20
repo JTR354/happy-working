@@ -54,4 +54,31 @@ describe("calendar", () => {
     expect(genKeyOfWFO(2024, 3)).toBe("20243");
     expect(genKeyOfWFO(2024, 12)).toBe("20250");
   });
+  it("When we have the public holiday, We get working days in this month", () => {
+    const [daysList, year, month] = getMonthList(2024, 4);
+    expect(
+      getWorkingDaysInMonth(daysList, year, month, { holiday: [1, 2] })
+    ).toEqual([
+      3, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 27, 28, 29, 30,
+      31,
+    ]);
+  });
+  it("When we have the public holiday, we will get the WFO in this month", () => {
+    const [daysList, year, month] = getMonthList(2024, 4);
+    const wfoInMonth = getWFOInMonth(daysList, year, month, { holiday: ["1"] });
+    expect(wfoInMonth).toBe(9);
+  });
+  it("When we have the public holiday, we will get the WFO in each week", () => {
+    const [daysList, year, month] = getMonthList(2024, 4);
+    const wfoEachWeek = getEachWeekWFO(daysList, year, month, {
+      holiday: ["1"],
+    });
+    expect(wfoEachWeek).toEqual([
+      [1, 3],
+      [2, 6, 10],
+      [2, 13, 17],
+      [2, 20, 24],
+      [2, 27, 31],
+    ]);
+  });
 });

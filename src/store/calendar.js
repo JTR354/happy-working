@@ -1,6 +1,7 @@
 export const CALENDAR_TYPE = {
   disabled: -1,
   storageKey: "WFO",
+  storageHolidayKey: "HOLIDAY",
   priorityInWeeks: [1, 5, 3, 2, 4],
   weekTemplate: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
   monthTemplate: [
@@ -36,7 +37,7 @@ export const dateToJson = (date) => {
 
 export const getTime = (...args) => new Date(...args) || new Date();
 export const getDay = (year, month, date) =>
-  new Date(year, month, date).getDay();
+  new Date(+year, +month, +date).getDay();
 
 export const getMonthDays = (...args) => {
   const time = getTime(...args);
@@ -60,28 +61,46 @@ export const getMonthList = (...args) => {
   ];
 };
 
-export const getWorkingDaysInMonth = (daysList, year, month) => {
-  return daysList.filter((date) => {
+export const getWorkingDaysInMonth = (
+  daysList,
+  year,
+  month,
+  { holiday } = {}
+) => {
+  const result = daysList.filter((date) => {
     if (date !== CALENDAR_TYPE.disabled) {
       const day = getDay(year, month, date);
       return day > 0 && day < 6;
     }
   });
+  if (Array.isArray(holiday) && holiday.length) {
+    const r = result.filter((d) => !holiday.find((date) => +d === +date));
+    return r;
+  }
+  return result;
 };
 
 export const getMiniWFO = (len) => Math.ceil(len * 0.4);
 
-export const getWFOInMonth = (daysList, year, month) => {
-  const workingDays = getWorkingDaysInMonth(daysList, year, month);
+export const getWFOInMonth = (daysList, year, month, { holiday } = {}) => {
+  const workingDays = getWorkingDaysInMonth(daysList, year, month, { holiday });
   return getMiniWFO(workingDays.length);
 };
 
-export const getWorkingDaysEachWeek = (daysList, year, month) => {
-  const workingDays = getWorkingDaysInMonth(daysList, year, month);
+export const getWorkingDaysEachWeek = (
+  daysList,
+  year,
+  month,
+  { holiday } = {}
+) => {
+  const workingDays = getWorkingDaysInMonth(daysList, year, month, { holiday });
   const result = [];
   let j = 0;
   for (let i = 0; i < workingDays.length; i++) {
-    if (workingDays[i] - workingDays[i - 1] > 1) {
+    if (
+      getDay(year, month, workingDays[i]) <
+      getDay(year, month, workingDays[i - 1])
+    ) {
       j++;
     }
     result[j] = result[j] || [];
@@ -90,8 +109,10 @@ export const getWorkingDaysEachWeek = (daysList, year, month) => {
   return result;
 };
 
-export const getEachWeekWFO = (daysList, year, month) => {
-  const workingDaysInWeeks = getWorkingDaysEachWeek(daysList, year, month);
+export const getEachWeekWFO = (daysList, year, month, { holiday } = {}) => {
+  const workingDaysInWeeks = getWorkingDaysEachWeek(daysList, year, month, {
+    holiday,
+  });
   return workingDaysInWeeks.map((originWeekData) => {
     const result = [];
     const wfo = getMiniWFO(originWeekData.length);

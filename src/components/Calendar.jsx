@@ -16,6 +16,28 @@ import ViteSVG from "../../public/vite.svg";
 import RightSVG from "../assets/chevron-right.svg";
 import LeftSVG from "../assets/chevron-left.svg";
 import { useEffect } from "react";
+const Settings = ({ className, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={cn("w-6 h-6", className)}
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+    />
+  </svg>
+);
 
 const Cell = ({ children, element, ...props }) => {
   return createElement(
@@ -27,18 +49,44 @@ const Cell = ({ children, element, ...props }) => {
   );
 };
 
+const useStoreDate = (key) => {
+  const [data, setData] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || {};
+    } catch (err) {
+      console.log(err);
+      return {};
+    }
+  });
+  useEffect(() => {
+    try {
+      data &&
+        typeof data === "object" &&
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (err) {
+      console.log(err);
+    }
+  }, [data, key]);
+  return [data, setData];
+};
+
 const Calendar = () => {
+  const [isEdit, setIsEdit] = useState(false);
+  const [active, setActive] = useStoreDate(CALENDAR_TYPE.storageKey);
+  const [holiday, setHoliday] = useStoreDate(CALENDAR_TYPE.storageHolidayKey);
   const [time, setTime] = useState(() => new Date());
+  const dataKey = useMemo(() => {
+    return genKeyOfWFO(time);
+  }, [time]);
   const [calendar, header, year, month] = useMemo(() => {
     const [list, year, month] = getMonthList(time);
     return [list, getMonthString(year, month), year, month];
   }, [time]);
   const eachWeek = useMemo(() => {
-    return getEachWeekWFO(calendar, year, month).reduce(
-      (prev, cur) => cur.slice(1).concat(prev),
-      []
-    );
-  }, [calendar, year, month]);
+    return getEachWeekWFO(calendar, year, month, {
+      holiday: holiday[dataKey],
+    }).reduce((prev, cur) => cur.slice(1).concat(prev), []);
+  }, [calendar, year, month, holiday, dataKey]);
   const isToday = useCallback(
     (date) => {
       const currentTime = dateToJson(time);
@@ -51,17 +99,6 @@ const Calendar = () => {
     },
     [time]
   );
-  const [active, setActive] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(CALENDAR_TYPE.storageKey)) || {};
-    } catch (err) {
-      console.log(err);
-      return {};
-    }
-  });
-  const activeKey = useMemo(() => {
-    return genKeyOfWFO(time);
-  }, [time]);
 
   const changeMonth = useCallback((dM) => {
     setTime((time) => {
@@ -71,26 +108,21 @@ const Calendar = () => {
   }, []);
 
   const daysInMonthForWFO = useMemo(() => {
-    return getWFOInMonth(calendar, year, month);
-  }, [calendar, year, month]);
+    return getWFOInMonth(calendar, year, month, { holiday: holiday[dataKey] });
+  }, [calendar, year, month, holiday, dataKey]);
 
   const daysFinishedInMonthForWFO = useMemo(() => {
-    return active[activeKey]?.length || 0;
-  }, [active, activeKey]);
-
-  useEffect(() => {
-    try {
-      active &&
-        typeof active === "object" &&
-        localStorage.setItem(CALENDAR_TYPE.storageKey, JSON.stringify(active));
-    } catch (err) {
-      console.log(err);
-    }
-  }, [active]);
+    return active[dataKey]?.length || 0;
+  }, [active, dataKey]);
 
   return (
     <>
-      <div className="rounded-2xl bg-white p-7 ">
+      <div
+        className={cn(
+          "rounded-2xl bg-white p-7 shadow-sm",
+          isEdit ? "opacity-50 bg-blend-darken" : ""
+        )}
+      >
         <h1 className="flex font-black text-2xl pb-3 items-center">
           {header}
           <button
@@ -127,7 +159,7 @@ const Calendar = () => {
                 key={index}
                 className={cn(
                   "cell border font-light text-black",
-                  active[activeKey]?.includes(date)
+                  active[dataKey]?.includes(date)
                     ? "active"
                     : date === CALENDAR_TYPE.disabled
                     ? "disabled"
@@ -138,15 +170,20 @@ const Calendar = () => {
                 <button
                   onClick={() => {
                     if (date === CALENDAR_TYPE.disabled) return;
-                    const list = active[activeKey] || [];
-                    setActive((act) => {
-                      return {
-                        ...act,
-                        [activeKey]: list.includes(date)
-                          ? list.filter((d) => d !== date)
-                          : list.concat(date),
-                      };
-                    });
+                    const current = isEdit ? holiday : active;
+                    const setCurrent = isEdit ? setHoliday : setActive;
+                    toggle(current, setCurrent);
+                    function toggle(obj, setObj) {
+                      const list = obj[dataKey] || [];
+                      setObj((act) => {
+                        return {
+                          ...act,
+                          [dataKey]: list.includes(date)
+                            ? list.filter((d) => d !== date)
+                            : list.concat(date),
+                        };
+                      });
+                    }
                   }}
                 >
                   {date === CALENDAR_TYPE.disabled ? "" : date}
@@ -161,6 +198,9 @@ const Calendar = () => {
                       src={ViteSVG}
                       className="absolute bottom-1 right-1 w-3/12 motion-safe:animate-bounce"
                     />
+                  ) : null}
+                  {holiday[dataKey]?.includes(date) ? (
+                    <div className="absolute bottom-1 holiday w-2 h-2  bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
                   ) : null}
                 </button>
               </Cell>
@@ -184,10 +224,7 @@ const Calendar = () => {
         </li>
         <li className="mb-2 list-disc">
           <p>
-            <img
-              src={ReactSVG}
-              className="w-5 inline mr-1 motion-safe:animate-spin-slow"
-            />
+            <img src={ReactSVG} className="w-5 inline mr-1 " />
             <span>
               means that <span className="font-black text-lg">minimum</span>{" "}
               days <span className="font-black text-lg">per week</span> when we
@@ -197,11 +234,7 @@ const Calendar = () => {
         </li>
         <li className="mb-2 list-disc">
           <p>
-            {/* <span className="w-5 h-5 inline-block mr-1 bg-wfo animate-ping" /> */}
-            <span className="relative inline-flex h-5 w-5 mr-1">
-              <span className="animate-ping absolute inline-flex h-full w-full  bg-wfo opacity-75"></span>
-              <span className="relative inline-flex  h-5 w-5 bg-wfo"></span>
-            </span>
+            <span className="w-5 h-5 inline-block mr-1 bg-wfo " />
             <span>means the date for WFO</span>
           </p>
         </li>
@@ -209,6 +242,24 @@ const Calendar = () => {
           <p>
             <img src={ViteSVG} className="w-5 inline mr-1" />
             <span>means today</span>
+          </p>
+        </li>
+        <li className="mb-2 list-disc">
+          <p>
+            <span className="w-5 h-5 rounded-full inline-block mr-1 bg-gradient-to-r from-purple-500 to-pink-500" />
+            <span>means holiday</span>
+          </p>
+        </li>
+        <li className="mb-2 list-disc">
+          <p>
+            <Settings
+              className={cn(
+                " inline mr-1 text-black ",
+                isEdit ? "animate-spin" : ""
+              )}
+              onClick={() => setIsEdit((bool) => !bool)}
+            />
+            <span>Please click the settings button to manual the holiday</span>
           </p>
         </li>
       </ol>
