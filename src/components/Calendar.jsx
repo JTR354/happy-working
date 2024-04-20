@@ -53,7 +53,7 @@ const Calendar = () => {
   );
   const [active, setActive] = useState(() => {
     try {
-      return JSON.parse(sessionStorage.getItem(CALENDAR_TYPE.storageKey)) || {};
+      return JSON.parse(localStorage.getItem(CALENDAR_TYPE.storageKey)) || {};
     } catch (err) {
       console.log(err);
       return {};
@@ -82,10 +82,7 @@ const Calendar = () => {
     try {
       active &&
         typeof active === "object" &&
-        sessionStorage.setItem(
-          CALENDAR_TYPE.storageKey,
-          JSON.stringify(active)
-        );
+        localStorage.setItem(CALENDAR_TYPE.storageKey, JSON.stringify(active));
     } catch (err) {
       console.log(err);
     }
