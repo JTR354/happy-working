@@ -12,6 +12,7 @@ import {
   getWFOInMonth,
   getLocation,
   calculateDistance,
+  useLocationStore,
 } from "../store/calendar";
 import ReactSVG from "../assets/react.svg";
 import ViteSVG from "/vite.svg";
@@ -76,6 +77,9 @@ const Calendar = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [active, setActive] = useStoreDate(CALENDAR_TYPE.storageKey);
   const [holiday, setHoliday] = useStoreDate(CALENDAR_TYPE.storageHolidayKey);
+  const { location, resetLocation, setLocation } = useLocationStore((state) => {
+    return state;
+  });
   const [time, setTime] = useState(() => new Date());
   const dataKey = useMemo(() => {
     return genKeyOfWFO(time);
@@ -118,27 +122,26 @@ const Calendar = () => {
   }, [active, dataKey]);
 
   useEffect(() => {
+    const { year, month, date } = dateToJson(new Date());
+    const key = genKeyOfWFO(new Date(year, month));
+    const list = active[key] || [];
+    const flag = list.includes(date);
+    if (flag) return;
     getLocation().then((res) => {
       const distance = calculateDistance(
         res.latitude,
         res.longitude,
-        document.getElementById("lat").value,
-        document.getElementById("lon").value
+        location.lat,
+        location.lon
       );
-      console.log(distance);
-      if (distance > 5) {
-        const { year, month, date } = dateToJson(new Date());
-        const key = genKeyOfWFO(new Date(year, month));
-        const list = active[key] || [];
-        const flag = list.includes(date);
-        if (!flag) {
-          setActive((act) => {
-            return {
-              ...act,
-              [key]: list.concat(date),
-            };
-          });
-        }
+      console.log(`distance: ${distance}`);
+      if (distance <= location.dis) {
+        setActive((act) => {
+          return {
+            ...act,
+            [key]: list.concat(date),
+          };
+        });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -288,26 +291,67 @@ const Calendar = () => {
               )}
               onClick={() => setIsEdit((bool) => !bool)}
             />
-            <span>Please click the settings button to manual the holiday</span>
+            <span>
+              Please click the settings button to manual the holiday or the
+              location
+            </span>
           </p>
         </li>
       </ol>
-      <div className="flex flex-col">
-        <label htmlFor="lat">Latitude:</label>
-        <input
-          type="text"
-          id="lat"
-          value={23.1347734}
-          onChange={(e) => {
-            const { id, value } = e.target;
-            console.log(id, value);
-          }}
-        />
-        <label htmlFor="lon">Longitude:</label>
-        <input type="text" id="lon" value={113.3321314} />
-        <label htmlFor="dis">Distance:</label>
-        <input type="text" id="lon" value={5} />
-      </div>
+      {isEdit && (
+        <form className="flex flex-col p-3" action="/" target="_self">
+          <h2 className="text-center font-extrabold text-2xl">
+            Location settings
+          </h2>
+          <label className="py-2" htmlFor="lat">
+            Latitude:
+          </label>
+          <input
+            className="p-2 caret-blue-500 focus:caret-indigo-500 rounded-md"
+            type="number"
+            id="lat"
+            value={location.lat}
+            onChange={setLocation}
+            required
+          />
+          <label htmlFor="lon" className="py-2">
+            Longitude:
+          </label>
+          <input
+            className="p-2 rounded-md"
+            type="number"
+            id="lon"
+            value={location.lon}
+            onChange={setLocation}
+            required
+          />
+          <label htmlFor="dis" className="py-2">
+            Distance:
+          </label>
+          <input
+            required
+            className="p-2 rounded-md"
+            type="number"
+            id="dis"
+            value={location.dis}
+            onChange={setLocation}
+          />
+          <div className="flex mt-5 mb=5 ">
+            <button
+              className="basis-3/4 mr-3 w-64 bg-red-600 rounded-md text-white p-3.5"
+              type="submit"
+            >
+              Submit
+            </button>
+            <button
+              className="flex-1 bg-white rounded-md text-black border p-3.5"
+              onClick={resetLocation}
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+      )}
     </>
   );
 };

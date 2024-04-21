@@ -1,3 +1,7 @@
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
+import { persist, createJSONStorage } from "zustand/middleware";
+
 export const CALENDAR_TYPE = {
   disabled: -1,
   storageKey: "WFO",
@@ -162,7 +166,6 @@ export function getLocation() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log(position);
           resolve(position.coords);
           console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
         },
@@ -177,3 +180,36 @@ export function getLocation() {
     }
   });
 }
+
+export const useLocationStore = create(
+  persist(
+    immer((set) => {
+      const lat = 23.1347734;
+      const lon = 113.3321314;
+      const dis = 0.2;
+      return {
+        location: {
+          lat,
+          lon,
+          dis,
+        },
+        setLocation: (e) => {
+          const { id, value } = e.target;
+          set((state) => {
+            state.location[id] = value;
+          });
+        },
+        resetLocation: (e) => {
+          e.preventDefault();
+          set((state) => {
+            state.location = { lat, lon, dis };
+          });
+        },
+      };
+    }),
+    {
+      name: CALENDAR_TYPE.storageLocationKey,
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);

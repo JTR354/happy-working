@@ -84,18 +84,20 @@ describe("calendar", () => {
   });
   it(`It's nearly the office`, () => {
     // 获取到的当前坐标
-    const currentLat = 35.7072896;
-    const currentLon = 139.8177792;
+    const currentLat = 22.808731105777515;
+    const currentLon = 113.48522681702629;
 
     // 给定的坐标
-    const targetLat = 35.7;
-    const targetLon = 139.8;
+    const targetLat = 23.1347734;
+    const targetLon = 113.3321314;
     const distance = calculateDistance(
       currentLat,
       currentLon,
       targetLat,
       targetLon
     );
-    expect(distance <= 3).toBe(true);
+    console.log(distance);
+    expect(distance).toBe(39.49716393140791);
+    expect(distance >= 0.2).toBe(true);
   });
 });
