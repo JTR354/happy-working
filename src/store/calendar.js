@@ -2,6 +2,7 @@ export const CALENDAR_TYPE = {
   disabled: -1,
   storageKey: "WFO",
   storageHolidayKey: "HOLIDAY",
+  storageLocationKey: "location",
   priorityInWeeks: [1, 5, 3, 2, 4],
   weekTemplate: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
   monthTemplate: [
@@ -139,3 +140,40 @@ export const genKeyOfWFO = (...args) => {
   const { year, month } = dateToJson(getTime(...args));
   return `${year}${month}`;
 };
+
+export function calculateDistance(lat1, lon1, lat2, lon2) {
+  console.log(lat1, lon2, lat2, lon2);
+  const R = 6371; // earth km
+  const dLat = ((lat2 - lat1) / 180) * Math.PI;
+  const dLon = ((lon2 - lon1) / 180) * Math.PI;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 / 180) * Math.PI) *
+      Math.cos((lat2 / 180) * Math.PI) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log(position);
+          resolve(position.coords);
+          console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+        },
+        (error) => {
+          console.log(`Error: ${error.code}, ${error.message}`);
+          reject(error);
+        }
+      );
+    } else {
+      reject(null);
+      console.log("Geolocation is not supported by this browser.");
+    }
+  });
+}

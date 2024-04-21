@@ -7,6 +7,7 @@ import {
   getMonthString,
   genKeyOfWFO,
   getWorkingDaysInMonth,
+  calculateDistance,
 } from "../calendar";
 
 describe("calendar", () => {
@@ -80,5 +81,21 @@ describe("calendar", () => {
       [2, 20, 24],
       [2, 27, 31],
     ]);
+  });
+  it(`It's nearly the office`, () => {
+    // 获取到的当前坐标
+    const currentLat = 35.7072896;
+    const currentLon = 139.8177792;
+
+    // 给定的坐标
+    const targetLat = 35.7;
+    const targetLon = 139.8;
+    const distance = calculateDistance(
+      currentLat,
+      currentLon,
+      targetLat,
+      targetLon
+    );
+    expect(distance <= 3).toBe(true);
   });
 });

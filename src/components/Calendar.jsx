@@ -10,9 +10,11 @@ import {
   dateToJson,
   genKeyOfWFO,
   getWFOInMonth,
+  getLocation,
+  calculateDistance,
 } from "../store/calendar";
 import ReactSVG from "../assets/react.svg";
-import ViteSVG from "../../public/vite.svg";
+import ViteSVG from "/vite.svg";
 import RightSVG from "../assets/chevron-right.svg";
 import LeftSVG from "../assets/chevron-left.svg";
 import { useEffect } from "react";
@@ -114,6 +116,33 @@ const Calendar = () => {
   const daysFinishedInMonthForWFO = useMemo(() => {
     return active[dataKey]?.length || 0;
   }, [active, dataKey]);
+
+  useEffect(() => {
+    getLocation().then((res) => {
+      const distance = calculateDistance(
+        res.latitude,
+        res.longitude,
+        document.getElementById("lat").value,
+        document.getElementById("lon").value
+      );
+      console.log(distance);
+      if (distance > 5) {
+        const { year, month, date } = dateToJson(new Date());
+        const key = genKeyOfWFO(new Date(year, month));
+        const list = active[key] || [];
+        const flag = list.includes(date);
+        if (!flag) {
+          setActive((act) => {
+            return {
+              ...act,
+              [key]: list.concat(date),
+            };
+          });
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -263,6 +292,22 @@ const Calendar = () => {
           </p>
         </li>
       </ol>
+      <div className="flex flex-col">
+        <label htmlFor="lat">Latitude:</label>
+        <input
+          type="text"
+          id="lat"
+          value={23.1347734}
+          onChange={(e) => {
+            const { id, value } = e.target;
+            console.log(id, value);
+          }}
+        />
+        <label htmlFor="lon">Longitude:</label>
+        <input type="text" id="lon" value={113.3321314} />
+        <label htmlFor="dis">Distance:</label>
+        <input type="text" id="lon" value={5} />
+      </div>
     </>
   );
 };
