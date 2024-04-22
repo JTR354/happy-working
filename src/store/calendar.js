@@ -184,14 +184,20 @@ export function getLocation() {
 export const useLocationStore = create(
   persist(
     immer((set) => {
-      const lat = 23.1347734;
-      const lon = 113.3321314;
-      const dis = 0.2;
+      const lat = 23.13605873813568;
+      const lon = 113.32598358243722;
+      const dis = 1.6;
       return {
         location: {
           lat,
           lon,
           dis,
+        },
+        currentLocation: {},
+        setCurrentLocation: (res) => {
+          set((state) => {
+            state.currentLocation = { ...res };
+          });
         },
         setLocation: (e) => {
           const { id, value } = e.target;
@@ -199,8 +205,7 @@ export const useLocationStore = create(
             state.location[id] = value;
           });
         },
-        resetLocation: (e) => {
-          e.preventDefault();
+        resetLocation: () => {
           set((state) => {
             state.location = { lat, lon, dis };
           });

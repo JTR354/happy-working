@@ -88,8 +88,8 @@ describe("calendar", () => {
     const currentLon = 113.48522681702629;
 
     // 给定的坐标
-    const targetLat = 23.1347734;
-    const targetLon = 113.3321314;
+    const targetLat = 23.13605873813568;
+    const targetLon = 113.32598358243722;
     const distance = calculateDistance(
       currentLat,
       currentLon,
@@ -97,7 +97,7 @@ describe("calendar", () => {
       targetLon
     );
     console.log(distance);
-    expect(distance).toBe(39.49716393140791);
-    expect(distance >= 0.2).toBe(true);
+    expect(distance).toBe(39.88148160692536);
+    expect(distance >= 0.6).toBe(true);
   });
 });

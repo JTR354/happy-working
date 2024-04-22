@@ -77,7 +77,13 @@ const Calendar = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [active, setActive] = useStoreDate(CALENDAR_TYPE.storageKey);
   const [holiday, setHoliday] = useStoreDate(CALENDAR_TYPE.storageHolidayKey);
-  const { location, resetLocation, setLocation } = useLocationStore((state) => {
+  const {
+    location,
+    resetLocation,
+    setLocation,
+    setCurrentLocation,
+    currentLocation,
+  } = useLocationStore((state) => {
     return state;
   });
   const [time, setTime] = useState(() => new Date());
@@ -128,12 +134,14 @@ const Calendar = () => {
     const flag = list.includes(date);
     if (flag) return;
     getLocation().then((res) => {
+      const { latitude, longitude } = res;
       const distance = calculateDistance(
-        res.latitude,
-        res.longitude,
+        latitude,
+        longitude,
         location.lat,
         location.lon
       );
+      setCurrentLocation({ latitude, longitude });
       console.log(`distance: ${distance}`);
       if (distance <= location.dis) {
         setActive((act) => {
@@ -345,11 +353,22 @@ const Calendar = () => {
             </button>
             <button
               className="flex-1 bg-white rounded-md text-black border p-3.5"
+              type="button"
               onClick={resetLocation}
             >
               Reset
             </button>
           </div>
+          {JSON.stringify(currentLocation)}
+          <button
+            className="flex-1 bg-white rounded-md text-black border p-3.5"
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(currentLocation));
+            }}
+          >
+            copy
+          </button>
         </form>
       )}
     </>
