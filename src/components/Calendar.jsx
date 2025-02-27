@@ -13,6 +13,8 @@ import {
   getLocation,
   calculateDistance,
   useLocationStore,
+  getPublicHoliday,
+  getWorkingDaysInMonth,
 } from "../store/calendar";
 import ReactSVG from "../assets/react.svg";
 import ViteSVG from "/vite.svg";
@@ -83,6 +85,8 @@ const Calendar = () => {
     setLocation,
     setCurrentLocation,
     currentLocation,
+    rateWFO,
+    setRateWFO,
   } = useLocationStore((state) => {
     return state;
   });
@@ -120,12 +124,16 @@ const Calendar = () => {
   }, []);
 
   const daysInMonthForWFO = useMemo(() => {
-    return getWFOInMonth(calendar, year, month, { holiday: holiday[dataKey] });
+    return getWFOInMonth(calendar, year, month, { holiday: holiday[dataKey], rate: rateWFO });
   }, [calendar, year, month, holiday, dataKey]);
 
   const daysFinishedInMonthForWFO = useMemo(() => {
     return active[dataKey]?.length || 0;
   }, [active, dataKey]);
+
+  const workingDays = useMemo(() => {
+    return getWorkingDaysInMonth(calendar, year, month, { holiday: holiday[dataKey] }).length;
+  }, [calendar, year, month, holiday, dataKey]);
 
   useEffect(() => {
     const { year, month, date } = dateToJson(new Date());
@@ -154,6 +162,24 @@ const Calendar = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const cachHolidays = getCurrentHoliday();
+    if (!cachHolidays?.length) {
+      const publicHoliday = getPublicHoliday(calendar, year, month);
+      setHoliday((act) => {
+        return {
+          ...act,
+          [`${year}${month}`]: publicHoliday,
+        };
+      });
+    }
+    function getCurrentHoliday() {
+      const holiday = JSON.parse(localStorage.getItem(CALENDAR_TYPE.storageHolidayKey));
+      return holiday?.[`${year}${month}`]
+    }
+
+  }, [calendar, year, month, holiday]);
 
   return (
     <>
@@ -202,8 +228,8 @@ const Calendar = () => {
                   active[dataKey]?.includes(date)
                     ? "active"
                     : date === CALENDAR_TYPE.disabled
-                    ? "disabled"
-                    : "normal",
+                      ? "disabled"
+                      : "normal",
                   isToday(date) ? "today" : ""
                 )}
               >
@@ -253,13 +279,16 @@ const Calendar = () => {
           <p>
             We have to WFO for{" "}
             <span className="font-black text-lg text-green-600">
-              {daysInMonthForWFO}
+              {daysInMonthForWFO} ({rateWFO * 10}%)
             </span>{" "}
             days this month, and now we finished{" "}
             <span className="text-lg text-orange-600 font-black">
               {daysFinishedInMonthForWFO}
             </span>{" "}
-            days
+            days,
+            and we have{" "}
+            <span className="text-lg text-red-600 font-black">
+              {workingDays} </span> working days in the month.
           </p>
         </li>
         <li className="mb-2 list-disc">
@@ -309,6 +338,20 @@ const Calendar = () => {
       {isEdit && (
         <form className="flex flex-col p-3" action="/" target="_self">
           <h2 className="text-center font-extrabold text-2xl">
+            WFO Rate settings
+          </h2>
+          <label className="py-2" htmlFor="lat">
+            rate:
+          </label>
+          <input
+            className="p-2 caret-blue-500 focus:caret-indigo-500 rounded-md"
+            type="tel"
+            id="rateWFO"
+            value={rateWFO}
+            onChange={setRateWFO}
+            required
+          />
+          <h2 className="text-center font-extrabold text-2xl mt-15">
             Location settings
           </h2>
           <label className="py-2" htmlFor="lat">

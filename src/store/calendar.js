@@ -74,8 +74,9 @@ export const getWorkingDaysInMonth = (
 ) => {
   const result = daysList.filter((date) => {
     if (date !== CALENDAR_TYPE.disabled) {
-      const day = getDay(year, month, date);
-      return day > 0 && day < 6;
+      return true
+      // const day = getDay(year, month, date);
+      // return day > 0 && day < 6;
     }
   });
   if (Array.isArray(holiday) && holiday.length) {
@@ -85,11 +86,21 @@ export const getWorkingDaysInMonth = (
   return result;
 };
 
-export const getMiniWFO = (len) => Math.ceil(len * 0.4);
+export const getPublicHoliday = (daysList, year, month) => {
+  const result = daysList.filter((date) => {
+    if (date !== CALENDAR_TYPE.disabled) {
+      const day = getDay(year, month, date);
+      return day === 0 || day === 6;
+    }
+  });
+  return result;
+};
 
-export const getWFOInMonth = (daysList, year, month, { holiday } = {}) => {
+export const getMiniWFO = (len, rate = 4) => Math.ceil(len * rate / 10);
+
+export const getWFOInMonth = (daysList, year, month, { holiday, rate } = {}) => {
   const workingDays = getWorkingDaysInMonth(daysList, year, month, { holiday });
-  return getMiniWFO(workingDays.length);
+  return getMiniWFO(workingDays.length, rate);
 };
 
 export const getWorkingDaysEachWeek = (
@@ -117,13 +128,13 @@ export const getWorkingDaysEachWeek = (
   return result;
 };
 
-export const getEachWeekWFO = (daysList, year, month, { holiday } = {}) => {
+export const getEachWeekWFO = (daysList, year, month, { holiday, rate } = {}) => {
   const workingDaysInWeeks = getWorkingDaysEachWeek(daysList, year, month, {
     holiday,
   });
   return workingDaysInWeeks.map((originWeekData) => {
     const result = [];
-    const wfo = getMiniWFO(originWeekData.length);
+    const wfo = getMiniWFO(originWeekData.length, rate);
     const weekData = {};
     originWeekData.forEach((date) => {
       weekData[getDay(year, month, date)] = date;
@@ -153,9 +164,9 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 / 180) * Math.PI) *
-      Math.cos((lat2 / 180) * Math.PI) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 / 180) * Math.PI) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -187,13 +198,20 @@ export const useLocationStore = create(
       const lat = 23.13605873813568;
       const lon = 113.32598358243722;
       const dis = 1.6;
+      const rateWFO = 4;
       return {
         location: {
           lat,
           lon,
           dis,
         },
+        rateWFO,
         currentLocation: {},
+        setRateWFO: (e) => {
+          set((state) => {
+            state.rateWFO = e.target.value;
+          });
+        },
         setCurrentLocation: (res) => {
           set((state) => {
             state.currentLocation = { ...res };
